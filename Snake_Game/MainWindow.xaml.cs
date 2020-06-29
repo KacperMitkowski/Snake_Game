@@ -26,13 +26,16 @@ namespace Snake_Game
         private int SnakeSpeed = 400;
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
+        private Random rnd = new Random();
         private enum SnakeDirection { Left, Right, Up, Down };
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
+        private SolidColorBrush FoodColor = Brushes.Red;
+        private UIElement SnakeFood = null;
         private List<SnakePart> SnakeParts = new List<SnakePart>();
         private DispatcherTimer GameTickTimer = new DispatcherTimer();
-
+    
         public MainWindow()
         {
             InitializeComponent();
@@ -49,6 +52,7 @@ namespace Snake_Game
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
             GameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeSpeed);
             DrawSnake();
+            DrawSnakeFood();
             GameTickTimer.IsEnabled = true;
         }
 
@@ -150,6 +154,36 @@ namespace Snake_Game
             });
             DrawSnake();
             // CheckCollisions();
+        }
+
+        private Point GetFoodPosition()
+        {
+            int maxX = (int)(GameArea.ActualWidth / CELL_WIDTH);
+            int maxY = (int)(GameArea.ActualHeight / CELL_HEIGHT);
+            int foodX = rnd.Next(0, maxX) * CELL_WIDTH;
+            int foodY = rnd.Next(0, maxY) * CELL_HEIGHT;
+
+            foreach (var snakePart in SnakeParts)
+            {
+                if ((snakePart.Position.X == foodX) && (snakePart.Position.Y == foodY))
+                    return GetFoodPosition();
+            }
+
+            return new Point(foodX, foodY);
+        }
+
+        private void DrawSnakeFood()
+        {
+            Point foodPosition = GetFoodPosition();
+            SnakeFood = new Ellipse()
+            {
+                Width = CELL_WIDTH,
+                Height = CELL_HEIGHT,
+                Fill = FoodColor
+            };
+            GameArea.Children.Add(SnakeFood);
+            Canvas.SetTop(SnakeFood, foodPosition.Y);
+            Canvas.SetLeft(SnakeFood, foodPosition.X);
         }
     }
 }
