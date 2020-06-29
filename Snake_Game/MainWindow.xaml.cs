@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Snake_Game
 {
@@ -22,21 +23,38 @@ namespace Snake_Game
     {
         private const int CELL_WIDTH = 20;
         private const int CELL_HEIGHT = 20;
+        private int SnakeSpeed = 400;
+        private int SnakeSpeedThreshold = 100;
+        private int SnakeLength = 3;
+        private enum SnakeDirection { Left, Right, Up, Down };
+        private SnakeDirection snakeDirection = SnakeDirection.Right;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
         private List<SnakePart> SnakeParts = new List<SnakePart>();
-        private enum SnakeDirection { Left, Right, Up, Down};
-        private SnakeDirection snakeDirection = SnakeDirection.Right;
-        private int SnakeLength = 3;
+        private DispatcherTimer GameTickTimer = new DispatcherTimer();
 
         public MainWindow()
         {
             InitializeComponent();
+            GameTickTimer.Tick += GameLoop_Step;
         }
-
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             DrawGameArea();
+            StartGame();
+        }
+
+        private void StartGame()
+        {
+            SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
+            GameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeSpeed);
+            DrawSnake();
+            GameTickTimer.IsEnabled = true;
+        }
+
+        private void GameLoop_Step(object sender, EventArgs e)
+        {
+            MoveSnake();
         }
 
         private void DrawGameArea()
@@ -86,16 +104,16 @@ namespace Snake_Game
                         Height = CELL_HEIGHT,
                         Fill = SnakePart.IsHead ? SnakeHeadColor : SnakeBodyColor
                     };
+                    GameArea.Children.Add(SnakePart.UiElement);
+                    Canvas.SetTop(SnakePart.UiElement, SnakePart.Position.Y);
+                    Canvas.SetLeft(SnakePart.UiElement, SnakePart.Position.X);
                 }
-                GameArea.Children.Add(SnakePart.UiElement);
-                Canvas.SetTop(SnakePart.UiElement, SnakePart.Position.Y);
-                Canvas.SetLeft(SnakePart.UiElement, SnakePart.Position.X);
             }
         }
 
         private void MoveSnake()
         {
-            while(SnakeParts.Count >= SnakeLength)
+            while (SnakeParts.Count >= SnakeLength)
             {
                 GameArea.Children.Remove(SnakeParts[0].UiElement);
                 SnakeParts.RemoveAt(0);
@@ -105,11 +123,12 @@ namespace Snake_Game
                 (SnakePart.UiElement as Rectangle).Fill = SnakeBodyColor;
                 SnakePart.IsHead = false;
             }
+
             SnakePart SnakeHead = SnakeParts[SnakeParts.Count - 1];
             double nextX = SnakeHead.Position.X;
             double nextY = SnakeHead.Position.Y;
-
-            switch(snakeDirection)
+            
+            switch (snakeDirection)
             {
                 case SnakeDirection.Left:
                     nextX -= CELL_WIDTH;
@@ -129,6 +148,8 @@ namespace Snake_Game
                 Position = new Point(nextX, nextY),
                 IsHead = true
             });
+            DrawSnake();
+            // CheckCollisions();
         }
     }
 }
