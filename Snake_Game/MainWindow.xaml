@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Snake_Game"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" SizeToContent="WidthAndHeight" ContentRendered="Window_ContentRendered">
+    <Border BorderBrush="Black" BorderThickness="5">
+        <Canvas x:Name="GameArea" Width="400" Height="400">
+            
+        </Canvas>
+    </Border>
 </Window>
