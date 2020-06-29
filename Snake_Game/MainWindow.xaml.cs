@@ -47,6 +47,45 @@ namespace Snake_Game
             StartGame();
         }
 
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            SnakeDirection currentDirection = snakeDirection;
+            switch (e.Key)
+            {
+                case Key.Up:
+                    if (snakeDirection != SnakeDirection.Down)
+                    {
+                        snakeDirection = SnakeDirection.Up;
+                    }
+                    break;
+                case Key.Down:
+                    if (snakeDirection != SnakeDirection.Up)
+                    {
+                        snakeDirection = SnakeDirection.Down;
+                    }
+                    break;
+                case Key.Left:
+                    if (snakeDirection != SnakeDirection.Right)
+                    {
+                        snakeDirection = SnakeDirection.Left;
+                    }
+                    break;
+                case Key.Right:
+                    if (snakeDirection != SnakeDirection.Left)
+                    {
+                        snakeDirection = SnakeDirection.Right;
+                    }
+                    break;
+                case Key.Space:
+                    StartGame();
+                    break;
+            }
+            if (snakeDirection != currentDirection)
+            {
+                MoveSnake();
+            }
+        }
+
         private void StartGame()
         {
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
