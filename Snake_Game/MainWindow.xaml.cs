@@ -22,6 +22,13 @@ namespace Snake_Game
     {
         private const int CELL_WIDTH = 20;
         private const int CELL_HEIGHT = 20;
+        private SolidColorBrush SnakeHeadColor = Brushes.Green;
+        private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
+        private List<SnakePart> SnakeParts = new List<SnakePart>();
+        private enum SnakeDirection { Left, Right, Up, Down};
+        private SnakeDirection snakeDirection = SnakeDirection.Right;
+        private int SnakeLength = 3;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -64,6 +71,25 @@ namespace Snake_Game
                 {
                     gameBoardIsDrawing = false;
                 }
+            }
+        }
+
+        private void DrawSnake()
+        {
+            foreach (var SnakePart in SnakeParts)
+            {
+                if(SnakePart.UiElement == null)
+                {
+                    SnakePart.UiElement = new Rectangle()
+                    {
+                        Width = CELL_WIDTH,
+                        Height = CELL_HEIGHT,
+                        Fill = SnakePart.IsHead ? SnakeHeadColor : SnakeBodyColor
+                    };
+                }
+                GameArea.Children.Add(SnakePart.UiElement);
+                Canvas.SetTop(SnakePart.UiElement, SnakePart.Position.Y);
+                Canvas.SetLeft(SnakePart.UiElement, SnakePart.Position.X);
             }
         }
     }
