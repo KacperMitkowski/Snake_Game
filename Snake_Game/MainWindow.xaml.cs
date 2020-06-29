@@ -92,5 +92,43 @@ namespace Snake_Game
                 Canvas.SetLeft(SnakePart.UiElement, SnakePart.Position.X);
             }
         }
+
+        private void MoveSnake()
+        {
+            while(SnakeParts.Count >= SnakeLength)
+            {
+                GameArea.Children.Remove(SnakeParts[0].UiElement);
+                SnakeParts.RemoveAt(0);
+            }
+            foreach (var SnakePart in SnakeParts)
+            {
+                (SnakePart.UiElement as Rectangle).Fill = SnakeBodyColor;
+                SnakePart.IsHead = false;
+            }
+            SnakePart SnakeHead = SnakeParts[SnakeParts.Count - 1];
+            double nextX = SnakeHead.Position.X;
+            double nextY = SnakeHead.Position.Y;
+
+            switch(snakeDirection)
+            {
+                case SnakeDirection.Left:
+                    nextX -= CELL_WIDTH;
+                    break;
+                case SnakeDirection.Right:
+                    nextX += CELL_WIDTH;
+                    break;
+                case SnakeDirection.Up:
+                    nextY -= CELL_HEIGHT;
+                    break;
+                case SnakeDirection.Down:
+                    nextY += CELL_HEIGHT;
+                    break;
+            }
+            SnakeParts.Add(new SnakePart()
+            {
+                Position = new Point(nextX, nextY),
+                IsHead = true
+            });
+        }
     }
 }
