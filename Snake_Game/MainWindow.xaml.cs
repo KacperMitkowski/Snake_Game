@@ -97,7 +97,7 @@ namespace Snake_Game
                 {
                     Width = CELL_WIDTH,
                     Height = CELL_HEIGHT,
-                    Fill = xIsOdd ? Brushes.White : Brushes.Black
+                    Fill = xIsOdd ? Brushes.LightBlue : Brushes.LightSalmon
                 };
                 GameArea.Children.Add(rect);
                 Canvas.SetTop(rect, nextY);
@@ -189,11 +189,7 @@ namespace Snake_Game
                 EatSnakeFood();
                 return;
             }
-
-            if ((SnakeHead.Position.Y < 0) || (SnakeHead.Position.Y >= GameArea.ActualHeight) || (SnakeHead.Position.X < 0) || (SnakeHead.Position.X >= GameArea.ActualWidth))
-            {
-                EndGame();
-            }
+            HandleMovingSnakeOutsideMape(SnakeHead);
 
             foreach (SnakePart SnakeBodyPart in SnakeParts.Take(SnakeParts.Count - 1))
             {
@@ -203,6 +199,27 @@ namespace Snake_Game
                 }
             }
         }
+
+        private void HandleMovingSnakeOutsideMape(SnakePart SnakeHead)
+        {
+            if (SnakeHead.Position.X < 0)
+            {
+                SnakeHead.Position = new Point(GameArea.ActualWidth, SnakeHead.Position.Y);
+            }
+            else if (SnakeHead.Position.X + CELL_WIDTH > GameArea.Width)
+            {
+                SnakeHead.Position = new Point(0 - CELL_WIDTH, SnakeHead.Position.Y);
+            }
+            else if (SnakeHead.Position.Y < 0)
+            {
+                SnakeHead.Position = new Point(SnakeHead.Position.X, GameArea.ActualHeight);
+            }
+            else if (SnakeHead.Position.Y + CELL_HEIGHT > GameArea.Height)
+            {
+                SnakeHead.Position = new Point(SnakeHead.Position.X, 0 - CELL_HEIGHT);
+            }
+        }
+
         private void EndGame()
         {
             bool isNewHighscore = false;
