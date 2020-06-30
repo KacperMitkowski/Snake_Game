@@ -289,7 +289,18 @@ namespace Snake_Game
 
         private void UpdateGameStatus()
         {
-            this.Title = $"Score: {CurrentScore} - Game speed: {GameTickTimer.Interval.TotalMilliseconds}";
+            this.ScoreTextBlock.Text = CurrentScore.ToString();
+            this.SpeedTextBlock.Text = GameTickTimer.Interval.TotalMilliseconds.ToString();
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
