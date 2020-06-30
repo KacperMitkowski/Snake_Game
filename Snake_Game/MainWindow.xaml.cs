@@ -144,7 +144,6 @@ namespace Snake_Game
                 randY = (randY / 20) * 20;
 
                 Enemy enemy = new Enemy();
-                Enemies.Add(enemy);
                 enemy.UIElement = new Rectangle()
                 {
                     Width = CELL_WIDTH,
@@ -215,6 +214,26 @@ namespace Snake_Game
             });
             DrawSnake();
             CheckCollisions();
+        }
+
+        private void MoveEnemies()
+        {
+            int xMove = 1;
+            int yMove = 1;
+            double nextX = 0, nextY = 0;
+            foreach (var Enemy in Enemies)
+            {
+                nextX = Enemy.Position.X;
+                nextY = Enemy.Position.Y;
+
+                nextX += xMove;
+                nextY += yMove;
+            }
+            Enemies.Add(new Enemy()
+            {
+                Position = new Point(nextX, nextY)
+            });
+            DrawEnemies();
         }
 
         private void CheckCollisions()
@@ -376,7 +395,10 @@ namespace Snake_Game
         private void GameLoop_Step(object sender, EventArgs e)
         {
             MoveSnake();
+            MoveEnemies();
         }
+
+        
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
