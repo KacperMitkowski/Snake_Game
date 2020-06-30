@@ -40,6 +40,7 @@ namespace Snake_Game
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private UIElement SnakeFood = new Ellipse() { Width = CELL_WIDTH, Height = CELL_HEIGHT, Fill = Brushes.Red };
         private List<SnakePart> SnakeParts = new List<SnakePart>();
+        private List<Enemy> Enemies = new List<Enemy>();
         private DispatcherTimer GameTickTimer = new DispatcherTimer();
         public ObservableCollection<SnakeHighscore> HighscoreList { get; set; } = new ObservableCollection<SnakeHighscore>();
         public MainWindow()
@@ -67,6 +68,17 @@ namespace Snake_Game
                 GameArea.Children.Remove(SnakeFood);
             }
 
+            foreach (Enemy enemy in Enemies)
+            {
+                
+                if(enemy.UIElement != null)
+                {
+                    GameArea.Children.Remove(enemy.UIElement);
+                }
+            }
+            Enemies.Clear();
+
+
             CurrentScore = 0;
             snakeDirection = SnakeDirection.Right;
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
@@ -74,6 +86,7 @@ namespace Snake_Game
 
             DrawSnake();
             DrawSnakeFood();
+            DrawEnemies();
             UpdateGameStatus();
 
             GameTickTimer.IsEnabled = true;
@@ -91,7 +104,7 @@ namespace Snake_Game
             bool xIsOdd = true;
             bool gameBoardIsDrawing = true;
 
-            while(gameBoardIsDrawing)
+            while (gameBoardIsDrawing)
             {
                 Rectangle rect = new Rectangle()
                 {
@@ -105,7 +118,7 @@ namespace Snake_Game
                 xIsOdd = !xIsOdd;
                 nextX += CELL_WIDTH;
 
-                if(nextX >= GameArea.ActualWidth)
+                if (nextX >= GameArea.ActualWidth)
                 {
                     nextX = 0;
                     nextY += CELL_HEIGHT;
@@ -113,10 +126,34 @@ namespace Snake_Game
                     xIsOdd = (rowCounter % 2 != 0);
                 }
 
-                if(nextY >= GameArea.ActualHeight)
+                if (nextY >= GameArea.ActualHeight)
                 {
                     gameBoardIsDrawing = false;
                 }
+            }
+            
+        }
+
+        private void DrawEnemies()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int randX = rnd.Next(0, (int)(GameArea.ActualWidth));
+                randX = (randX / 20) * 20;
+                int randY = rnd.Next(0, (int)GameArea.ActualHeight);
+                randY = (randY / 20) * 20;
+
+                Enemy enemy = new Enemy();
+                Enemies.Add(enemy);
+                enemy.UIElement = new Rectangle()
+                {
+                    Width = CELL_WIDTH,
+                    Height = CELL_HEIGHT,
+                    Fill = Brushes.Orange
+                };
+                GameArea.Children.Add(enemy.UIElement);
+                Canvas.SetTop(enemy.UIElement, randY);
+                Canvas.SetLeft(enemy.UIElement, randX);
             }
         }
 
