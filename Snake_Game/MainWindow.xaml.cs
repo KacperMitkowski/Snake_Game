@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Serialization;
+using System.Diagnostics;
 
 namespace Snake_Game
 {
@@ -23,6 +27,8 @@ namespace Snake_Game
     {
         private const int CELL_WIDTH = 20;
         private const int CELL_HEIGHT = 20;
+        private const int MAX_HIGHSCORE_LIST_ENTRY_COUNT = 5;
+        private const string FILE_WITH_HIGHSCORE_LIST = "snake_highscorelist.xml";
         private int SnakeSpeed = 400;
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
@@ -32,63 +38,27 @@ namespace Snake_Game
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
-        private SolidColorBrush FoodColor = Brushes.Red;
-        private UIElement SnakeFood = null;
+        private UIElement SnakeFood = new Ellipse()
+        {
+            Width = CELL_WIDTH,
+            Height = CELL_HEIGHT,
+            Fill = Brushes.Red
+        };
         private List<SnakePart> SnakeParts = new List<SnakePart>();
         private DispatcherTimer GameTickTimer = new DispatcherTimer();
-    
+        public ObservableCollection<SnakeHighscore> HighscoreList { get; set; } = new ObservableCollection<SnakeHighscore>();
         public MainWindow()
         {
             InitializeComponent();
             GameTickTimer.Tick += GameLoop_Step;
-        }
-        private void Window_ContentRendered(object sender, EventArgs e)
-        {
-            DrawGameArea();
-            StartGame();
-        }
-
-        private void Window_KeyUp(object sender, KeyEventArgs e)
-        {
-            SnakeDirection currentDirection = snakeDirection;
-            switch (e.Key)
-            {
-                case Key.Up:
-                    if (snakeDirection != SnakeDirection.Down)
-                    {
-                        snakeDirection = SnakeDirection.Up;
-                    }
-                    break;
-                case Key.Down:
-                    if (snakeDirection != SnakeDirection.Up)
-                    {
-                        snakeDirection = SnakeDirection.Down;
-                    }
-                    break;
-                case Key.Left:
-                    if (snakeDirection != SnakeDirection.Right)
-                    {
-                        snakeDirection = SnakeDirection.Left;
-                    }
-                    break;
-                case Key.Right:
-                    if (snakeDirection != SnakeDirection.Left)
-                    {
-                        snakeDirection = SnakeDirection.Right;
-                    }
-                    break;
-                case Key.Space:
-                    StartGame();
-                    break;
-            }
-            if (snakeDirection != currentDirection)
-            {
-                MoveSnake();
-            }
+            LoadHighscoreList();
         }
 
         private void StartGame()
         {
+            bdrHighscoreList.Visibility = Visibility.Collapsed;
+            bdrEndOfGame.Visibility = Visibility.Collapsed;
+
             foreach (SnakePart snakeBodyPart in SnakeParts)
             {
                 if (snakeBodyPart.UiElement != null)
@@ -115,9 +85,10 @@ namespace Snake_Game
             GameTickTimer.IsEnabled = true;
         }
 
-        private void GameLoop_Step(object sender, EventArgs e)
+        private void RestartGame()
         {
-            MoveSnake();
+            Process.Start(Application.ResourceAssembly.Location);
+            Application.Current.Shutdown();
         }
 
         private void DrawGameArea()
@@ -225,8 +196,7 @@ namespace Snake_Game
                 return;
             }
 
-            if ((SnakeHead.Position.Y < 0) || (SnakeHead.Position.Y >= GameArea.ActualHeight) ||
-            (SnakeHead.Position.X < 0) || (SnakeHead.Position.X >= GameArea.ActualWidth))
+            if ((SnakeHead.Position.Y < 0) || (SnakeHead.Position.Y >= GameArea.ActualHeight) || (SnakeHead.Position.X < 0) || (SnakeHead.Position.X >= GameArea.ActualWidth))
             {
                 EndGame();
             }
@@ -241,8 +211,23 @@ namespace Snake_Game
         }
         private void EndGame()
         {
+            bool isNewHighscore = false;
+            if (CurrentScore > 0)
+            {
+                int lowestHighscore = (this.HighscoreList.Count > 0 ? this.HighscoreList.Min(x => x.Score) : 0);
+                if ((CurrentScore > lowestHighscore) || (this.HighscoreList.Count < MAX_HIGHSCORE_LIST_ENTRY_COUNT))
+                {
+                    bdrNewHighscore.Visibility = Visibility.Visible;
+                    txtPlayerName.Focus();
+                    isNewHighscore = true;
+                }
+            }
+            if (!isNewHighscore)
+            {
+                tbFinalScore.Text = CurrentScore.ToString();
+                bdrEndOfGame.Visibility = Visibility.Visible;
+            }
             GameTickTimer.IsEnabled = false;
-            MessageBox.Show("Oooops, you died!\n\nTo start a new game, just press the Space bar...", "SnakeWPF");
         }
 
         private Point GetFoodPosition()
@@ -264,12 +249,6 @@ namespace Snake_Game
         private void DrawSnakeFood()
         {
             Point foodPosition = GetFoodPosition();
-            SnakeFood = new Ellipse()
-            {
-                Width = CELL_WIDTH,
-                Height = CELL_HEIGHT,
-                Fill = FoodColor
-            };
             GameArea.Children.Add(SnakeFood);
             Canvas.SetTop(SnakeFood, foodPosition.Y);
             Canvas.SetLeft(SnakeFood, foodPosition.X);
@@ -290,7 +269,65 @@ namespace Snake_Game
         private void UpdateGameStatus()
         {
             this.ScoreTextBlock.Text = CurrentScore.ToString();
-            this.SpeedTextBlock.Text = GameTickTimer.Interval.TotalMilliseconds.ToString();
+            this.SpeedTextBlock.Text = GameTickTimer.Interval.TotalSeconds.ToString();
+        }
+
+        private void Window_ContentRendered(object sender, EventArgs e)
+        {
+            DrawGameArea();
+        }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            SnakeDirection currentDirection = snakeDirection;
+            switch (e.Key)
+            {
+                case Key.Up:
+                    if (snakeDirection != SnakeDirection.Down)
+                    {
+                        snakeDirection = SnakeDirection.Up;
+                    }
+                    break;
+                case Key.Down:
+                    if (snakeDirection != SnakeDirection.Up)
+                    {
+                        snakeDirection = SnakeDirection.Down;
+                    }
+                    break;
+                case Key.Left:
+                    if (snakeDirection != SnakeDirection.Right)
+                    {
+                        snakeDirection = SnakeDirection.Left;
+                    }
+                    break;
+                case Key.Right:
+                    if (snakeDirection != SnakeDirection.Left)
+                    {
+                        snakeDirection = SnakeDirection.Right;
+                    }
+                    break;
+                case Key.Space:
+                    bdrWelcomeMessage.Visibility = Visibility.Collapsed;
+                    StartGame();
+                    break;
+                case Key.Escape:
+                    this.Close();
+                    break;
+                case Key.N:
+                    RestartGame();
+                    break;
+            }
+            if (snakeDirection != currentDirection)
+            {
+                MoveSnake();
+            }
+        }
+
+        
+
+        private void GameLoop_Step(object sender, EventArgs e)
+        {
+            MoveSnake();
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -301,6 +338,62 @@ namespace Snake_Game
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void btnAddToHighscoreList_Click(object sender, RoutedEventArgs e)
+        {
+            int newIndex = 0;
+            if ((this.HighscoreList.Count > 0) && (CurrentScore < this.HighscoreList.Max(x => x.Score)))
+            {
+                SnakeHighscore justAbove = this.HighscoreList.OrderByDescending(x => x.Score).First(x => x.Score >= CurrentScore);
+                if (justAbove != null)
+                {
+                    newIndex = this.HighscoreList.IndexOf(justAbove) + 1;
+                }
+            }
+            this.HighscoreList.Insert(newIndex, new SnakeHighscore()
+            {
+                PlayerName = txtPlayerName.Text,
+                Score = CurrentScore
+            });
+            while (this.HighscoreList.Count > MAX_HIGHSCORE_LIST_ENTRY_COUNT)
+            {
+                this.HighscoreList.RemoveAt(MAX_HIGHSCORE_LIST_ENTRY_COUNT);
+            }
+
+            SaveHighscoreList();
+            bdrNewHighscore.Visibility = Visibility.Collapsed;
+            bdrHighscoreList.Visibility = Visibility.Visible;
+        }
+        private void BtnShowHighscoreList_Click(object sender, RoutedEventArgs e)
+        {
+            bdrWelcomeMessage.Visibility = Visibility.Collapsed;
+            bdrHighscoreList.Visibility = Visibility.Visible;
+        }
+
+        private void LoadHighscoreList()
+        {
+            if (File.Exists(FILE_WITH_HIGHSCORE_LIST))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(List<SnakeHighscore>));
+                using (Stream reader = new FileStream(FILE_WITH_HIGHSCORE_LIST, FileMode.Open))
+                {
+                    List<SnakeHighscore> tempList = (List<SnakeHighscore>)serializer.Deserialize(reader);
+                    this.HighscoreList.Clear();
+                    foreach (var item in tempList.OrderByDescending(x => x.Score))
+                    {
+                        this.HighscoreList.Add(item);
+                    }
+                }
+            }
+        }
+        private void SaveHighscoreList()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<SnakeHighscore>));
+            using (Stream writer = new FileStream(FILE_WITH_HIGHSCORE_LIST, FileMode.Create))
+            {
+                serializer.Serialize(writer, this.HighscoreList);
+            }
         }
     }
 }
