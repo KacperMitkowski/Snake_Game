@@ -89,10 +89,29 @@ namespace Snake_Game
 
         private void StartGame()
         {
+            foreach (SnakePart snakeBodyPart in SnakeParts)
+            {
+                if (snakeBodyPart.UiElement != null)
+                {
+                    GameArea.Children.Remove(snakeBodyPart.UiElement);
+                }
+            }
+            SnakeParts.Clear();
+            if (SnakeFood != null)
+            {
+                GameArea.Children.Remove(SnakeFood);
+            }
+
+            CurrentScore = 0;
+            SnakeLength = 3;
+            snakeDirection = SnakeDirection.Right;
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
             GameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeSpeed);
+
             DrawSnake();
             DrawSnakeFood();
+            UpdateGameStatus();
+
             GameTickTimer.IsEnabled = true;
         }
 
@@ -260,7 +279,8 @@ namespace Snake_Game
         {
             SnakeLength++;
             CurrentScore++;
-            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)GameTickTimer.Interval.TotalMilliseconds - (CurrentScore * 2));
+            int howMuchSpeedIncreases = 30;
+            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)GameTickTimer.Interval.TotalMilliseconds - (howMuchSpeedIncreases));
             GameTickTimer.Interval = TimeSpan.FromMilliseconds(timerInterval);
             GameArea.Children.Remove(SnakeFood);
             DrawSnakeFood();
@@ -269,7 +289,7 @@ namespace Snake_Game
 
         private void UpdateGameStatus()
         {
-            this.Title = "SnakeWPF - Score: " + CurrentScore + " - Game speed: " + GameTickTimer.Interval.TotalMilliseconds;
+            this.Title = $"Score: {CurrentScore} - Game speed: {GameTickTimer.Interval.TotalMilliseconds}";
         }
     }
 }

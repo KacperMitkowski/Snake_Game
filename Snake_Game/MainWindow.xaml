@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" SizeToContent="WidthAndHeight" ContentRendered="Window_ContentRendered" KeyUp="Window_KeyUp">
     <Border BorderBrush="Black" BorderThickness="5" ClipToBounds="True">
-        <Canvas x:Name="GameArea" Width="400" Height="400">
+        <Canvas x:Name="GameArea" Width="600" Height="600">
             
         </Canvas>
     </Border>
