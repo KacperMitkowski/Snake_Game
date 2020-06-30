@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using System.Diagnostics;
+using System.Collections;
 
 namespace Snake_Game
 {
@@ -29,21 +30,12 @@ namespace Snake_Game
         private const int CELL_HEIGHT = 20;
         private const int MAX_HIGHSCORE_LIST_ENTRY_COUNT = 5;
         private const string FILE_WITH_HIGHSCORE_LIST = "snake_highscorelist.xml";
-        private int SnakeSpeed = 400;
-        private int SnakeSpeedThreshold = 100;
-        private int SnakeLength = 3;
-        private int CurrentScore = 0;
+        private Hashtable options = new Hashtable();
         private Random rnd = new Random();
-        private enum SnakeDirection { Left, Right, Up, Down };
-        private SnakeDirection snakeDirection = SnakeDirection.Right;
-        private SolidColorBrush SnakeHeadColor = Brushes.Green;
-        private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
-        private UIElement SnakeFood = new Ellipse()
-        {
-            Width = CELL_WIDTH,
-            Height = CELL_HEIGHT,
-            Fill = Brushes.Red
-        };
+        private int CurrentSnakeLength;
+        private int CurrentScore = 0;
+        private SnakeDirection snakeDirection;
+        private UIElement SnakeFood;
         private List<SnakePart> SnakeParts = new List<SnakePart>();
         private DispatcherTimer GameTickTimer = new DispatcherTimer();
         public ObservableCollection<SnakeHighscore> HighscoreList { get; set; } = new ObservableCollection<SnakeHighscore>();
@@ -52,6 +44,18 @@ namespace Snake_Game
             InitializeComponent();
             GameTickTimer.Tick += GameLoop_Step;
             LoadHighscoreList();
+            InitializeOptions();
+        }
+
+        private void InitializeOptions()
+        {
+            options.Add("SnakeSpeed", 400.0);
+            options.Add("SnakeSpeedThreshold", 100);
+            options.Add("SnakeInitialLength", 3);
+            options.Add("SnakeHeadColor", Brushes.Green);
+            options.Add("SnakeBodyColor", Brushes.GreenYellow);
+            SnakeFood = new Ellipse() { Width = CELL_WIDTH, Height = CELL_HEIGHT, Fill = Brushes.Red };
+            snakeDirection = SnakeDirection.Right;
         }
 
         private void StartGame()
@@ -73,10 +77,10 @@ namespace Snake_Game
             }
 
             CurrentScore = 0;
-            SnakeLength = 3;
+            CurrentSnakeLength = (int)options["SnakeInitialLength"];
             snakeDirection = SnakeDirection.Right;
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
-            GameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeSpeed);
+            GameTickTimer.Interval = TimeSpan.FromMilliseconds((double)options["SnakeSpeed"]);
 
             DrawSnake();
             DrawSnakeFood();
@@ -136,7 +140,7 @@ namespace Snake_Game
                     {
                         Width = CELL_WIDTH,
                         Height = CELL_HEIGHT,
-                        Fill = SnakePart.IsHead ? SnakeHeadColor : SnakeBodyColor
+                        Fill = SnakePart.IsHead ? (SolidColorBrush)options["SnakeHeadColor"] : (SolidColorBrush)options["SnakeBodyColor"]
                     };
                     GameArea.Children.Add(SnakePart.UiElement);
                     Canvas.SetTop(SnakePart.UiElement, SnakePart.Position.Y);
@@ -147,14 +151,14 @@ namespace Snake_Game
 
         private void MoveSnake()
         {
-            while (SnakeParts.Count >= SnakeLength)
+            while (SnakeParts.Count >= CurrentSnakeLength)
             {
                 GameArea.Children.Remove(SnakeParts[0].UiElement);
                 SnakeParts.RemoveAt(0);
             }
             foreach (var SnakePart in SnakeParts)
             {
-                (SnakePart.UiElement as Rectangle).Fill = SnakeBodyColor;
+                (SnakePart.UiElement as Rectangle).Fill = (SolidColorBrush)options["SnakeBodyColor"];
                 SnakePart.IsHead = false;
             }
 
@@ -256,10 +260,10 @@ namespace Snake_Game
 
         private void EatSnakeFood()
         {
-            SnakeLength++;
+            CurrentSnakeLength++;
             CurrentScore++;
             int howMuchSpeedIncreases = 30;
-            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)GameTickTimer.Interval.TotalMilliseconds - (howMuchSpeedIncreases));
+            int timerInterval = Math.Max((int)options["SnakeSpeedThreshold"], (int)GameTickTimer.Interval.TotalMilliseconds - (howMuchSpeedIncreases));
             GameTickTimer.Interval = TimeSpan.FromMilliseconds(timerInterval);
             GameArea.Children.Remove(SnakeFood);
             DrawSnakeFood();
