@@ -26,6 +26,7 @@ namespace Snake_Game
         private int SnakeSpeed = 400;
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
+        private int CurrentScore = 0;
         private Random rnd = new Random();
         private enum SnakeDirection { Left, Right, Up, Down };
         private SnakeDirection snakeDirection = SnakeDirection.Right;
@@ -192,7 +193,37 @@ namespace Snake_Game
                 IsHead = true
             });
             DrawSnake();
-            // CheckCollisions();
+            CheckCollisions();
+        }
+
+        private void CheckCollisions()
+        {
+            SnakePart SnakeHead = SnakeParts[SnakeParts.Count - 1];
+
+            if ((SnakeHead.Position.X == Canvas.GetLeft(SnakeFood)) && (SnakeHead.Position.Y == Canvas.GetTop(SnakeFood)))
+            {
+                EatSnakeFood();
+                return;
+            }
+
+            if ((SnakeHead.Position.Y < 0) || (SnakeHead.Position.Y >= GameArea.ActualHeight) ||
+            (SnakeHead.Position.X < 0) || (SnakeHead.Position.X >= GameArea.ActualWidth))
+            {
+                EndGame();
+            }
+
+            foreach (SnakePart SnakeBodyPart in SnakeParts.Take(SnakeParts.Count - 1))
+            {
+                if ((SnakeHead.Position.X == SnakeBodyPart.Position.X) && (SnakeHead.Position.Y == SnakeBodyPart.Position.Y))
+                {
+                    EndGame();
+                }
+            }
+        }
+        private void EndGame()
+        {
+            GameTickTimer.IsEnabled = false;
+            MessageBox.Show("Oooops, you died!\n\nTo start a new game, just press the Space bar...", "SnakeWPF");
         }
 
         private Point GetFoodPosition()
@@ -223,6 +254,22 @@ namespace Snake_Game
             GameArea.Children.Add(SnakeFood);
             Canvas.SetTop(SnakeFood, foodPosition.Y);
             Canvas.SetLeft(SnakeFood, foodPosition.X);
+        }
+
+        private void EatSnakeFood()
+        {
+            SnakeLength++;
+            CurrentScore++;
+            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)GameTickTimer.Interval.TotalMilliseconds - (CurrentScore * 2));
+            GameTickTimer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+            GameArea.Children.Remove(SnakeFood);
+            DrawSnakeFood();
+            UpdateGameStatus();
+        }
+
+        private void UpdateGameStatus()
+        {
+            this.Title = "SnakeWPF - Score: " + CurrentScore + " - Game speed: " + GameTickTimer.Interval.TotalMilliseconds;
         }
     }
 }
