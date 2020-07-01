@@ -10,8 +10,7 @@ namespace Snake_Game
 {
     public class Enemy
     {
-        private readonly Rectangle rect;
-        public UIElement UIElement { get; set; }
+        public UIElement UiElement { get; set; }
         public Point Position { get; set; }
     }
 }

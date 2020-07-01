@@ -70,14 +70,12 @@ namespace Snake_Game
 
             foreach (Enemy enemy in Enemies)
             {
-                
-                if(enemy.UIElement != null)
+                if (enemy.UiElement != null)
                 {
-                    GameArea.Children.Remove(enemy.UIElement);
+                    GameArea.Children.Remove(enemy.UiElement);
                 }
             }
             Enemies.Clear();
-
 
             CurrentScore = 0;
             snakeDirection = SnakeDirection.Right;
@@ -132,28 +130,6 @@ namespace Snake_Game
                 }
             }
             
-        }
-
-        private void DrawEnemies()
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                int randX = rnd.Next(0, (int)(GameArea.ActualWidth));
-                randX = (randX / 20) * 20;
-                int randY = rnd.Next(0, (int)GameArea.ActualHeight);
-                randY = (randY / 20) * 20;
-
-                Enemy enemy = new Enemy();
-                enemy.UIElement = new Rectangle()
-                {
-                    Width = CELL_WIDTH,
-                    Height = CELL_HEIGHT,
-                    Fill = Brushes.Orange
-                };
-                GameArea.Children.Add(enemy.UIElement);
-                Canvas.SetTop(enemy.UIElement, randY);
-                Canvas.SetLeft(enemy.UIElement, randX);
-            }
         }
 
         private void DrawSnake()
@@ -218,22 +194,94 @@ namespace Snake_Game
 
         private void MoveEnemies()
         {
-            int xMove = 1;
-            int yMove = 1;
-            double nextX = 0, nextY = 0;
-            foreach (var Enemy in Enemies)
-            {
-                nextX = Enemy.Position.X;
-                nextY = Enemy.Position.Y;
-
-                nextX += xMove;
-                nextY += yMove;
-            }
-            Enemies.Add(new Enemy()
-            {
-                Position = new Point(nextX, nextY)
-            });
             DrawEnemies();
+            //foreach (Enemy enemy in Enemies)
+            //{
+            //    if (enemy.UiElement != null)
+            //    {
+            //        GameArea.Children.Remove(enemy.UiElement);
+                         
+            //    }
+            //}
+
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    Enemy enemy = new Enemy();
+            //    Enemies.Add(enemy);
+            //    enemy.UiElement = new Rectangle()
+            //    {
+            //        Width = CELL_WIDTH,
+            //        Height = CELL_HEIGHT,
+            //        Fill = Brushes.Orange
+            //    };
+            //    GameArea.Children.Add(enemy.UiElement);
+            //    Canvas.SetTop(enemy.UiElement, 40);
+            //    Canvas.SetLeft(enemy.UiElement, 120);
+            //}
+
+            //Enemy en = new Enemy();
+            //Enemies.Add(en);
+            //en.UiElement = new Rectangle()
+            //{
+            //    Width = CELL_WIDTH,
+            //    Height = CELL_HEIGHT,
+            //    Fill = Brushes.Orange
+            //};
+            //GameArea.Children.Add(en.UiElement);
+            //Canvas.SetTop(en.UiElement, 40);
+            //Canvas.SetLeft(en.UiElement, 120);
+        }
+
+        private void DrawEnemies()
+        {
+            if (Enemies.Count == 0)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    int randX = rnd.Next(0, (int)GameArea.ActualWidth);
+                    randX = (randX / 20) * 20;
+                    int randY = rnd.Next(0, (int)GameArea.ActualHeight);
+                    randY = (randY / 20) * 20;
+
+                    Enemy enemy = new Enemy() {
+                        Position = new Point(randX, randY),
+                        UiElement = new Rectangle()
+                        {
+                            Width = CELL_WIDTH,
+                            Height = CELL_HEIGHT,
+                            Fill = Brushes.Orange
+                        }
+                    };
+                    Enemies.Add(enemy);
+                    GameArea.Children.Add(enemy.UiElement);
+                    Canvas.SetTop(enemy.UiElement, randY);
+                    Canvas.SetLeft(enemy.UiElement, randX);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Enemies.Count; i++)
+                {
+                    if (Enemies[i].UiElement != null)
+                    {
+                        GameArea.Children.Remove(Enemies[i].UiElement);
+                        Enemies[i] = new Enemy()
+                        {
+                            UiElement = new Rectangle()
+                            {
+                                Width = CELL_WIDTH,
+                                Height = CELL_HEIGHT,
+                                Fill = Brushes.Orange
+                            },
+                            Position = new Point(Enemies[i].Position.X + 20, Enemies[i].Position.Y + 20)
+                        };
+                        GameArea.Children.Add(Enemies[i].UiElement);
+                        Canvas.SetTop(Enemies[i].UiElement, Enemies[i].Position.Y);
+                        Canvas.SetLeft(Enemies[i].UiElement, Enemies[i].Position.X);
+                    }
+                }
+                
+            }
         }
 
         private void CheckCollisions()
