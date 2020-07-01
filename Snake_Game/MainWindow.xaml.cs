@@ -56,6 +56,7 @@ namespace Snake_Game
             LoadHighscoreList();
         }
 
+
         private void StartGame()
         {
             bdrHighscoreList.Visibility = Visibility.Collapsed;
