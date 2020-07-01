@@ -18,6 +18,7 @@ using System.Windows.Threading;
 using System.Xml.Serialization;
 using System.Diagnostics;
 using System.Collections;
+using System.Speech.Synthesis;
 
 namespace Snake_Game
 {
@@ -34,16 +35,19 @@ namespace Snake_Game
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
         private int NumberOfEnemies = 1;
+        private int CurrentScore = 0;
+        private SnakeDirection snakeDirection = SnakeDirection.Right;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
         private SolidColorBrush EnemyColor = Brushes.BlueViolet;
+        private SolidColorBrush BoardColorOne = Brushes.LightBlue;
+        private SolidColorBrush BoardColorTwo = Brushes.LightSalmon;
         private Random rnd = new Random();
-        private int CurrentScore = 0;
-        private SnakeDirection snakeDirection = SnakeDirection.Right;
         private UIElement SnakeFood = new Ellipse() { Width = CELL_WIDTH, Height = CELL_HEIGHT, Fill = Brushes.Red };
         private List<SnakePart> SnakeParts = new List<SnakePart>();
         private List<Enemy> Enemies = new List<Enemy>();
         private DispatcherTimer GameTickTimer = new DispatcherTimer();
+        private SpeechSynthesizer SpeechSynthesizer = new SpeechSynthesizer();
         public ObservableCollection<SnakeHighscore> HighscoreList { get; set; } = new ObservableCollection<SnakeHighscore>();
         public MainWindow()
         {
@@ -65,6 +69,7 @@ namespace Snake_Game
                 }
             }
             SnakeParts.Clear();
+
             if (SnakeFood != null)
             {
                 GameArea.Children.Remove(SnakeFood);
@@ -79,16 +84,15 @@ namespace Snake_Game
             }
             Enemies.Clear();
 
-            CurrentScore = 0;
-            snakeDirection = SnakeDirection.Right;
             SnakeParts.Add(new SnakePart() { Position = new Point(0, 0) });
             GameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeSpeed);
-
+            CurrentScore = 0;
+            snakeDirection = SnakeDirection.Right;
+            SnakeLength = 3;
             DrawSnake();
             DrawSnakeFood();
             DrawEnemies();
             UpdateGameStatus();
-
             GameTickTimer.IsEnabled = true;
         }
 
@@ -97,7 +101,6 @@ namespace Snake_Game
             Process.Start(Application.ResourceAssembly.Location);
             Application.Current.Shutdown();
         }
-
         private void DrawGameArea()
         {
             int nextX = 0, nextY = 0, rowCounter = 1;
@@ -110,7 +113,7 @@ namespace Snake_Game
                 {
                     Width = CELL_WIDTH,
                     Height = CELL_HEIGHT,
-                    Fill = xIsOdd ? Brushes.LightBlue : Brushes.LightSalmon
+                    Fill = xIsOdd ? BoardColorOne : BoardColorTwo
                 };
                 GameArea.Children.Add(rect);
                 Canvas.SetTop(rect, nextY);
@@ -131,9 +134,7 @@ namespace Snake_Game
                     gameBoardIsDrawing = false;
                 }
             }
-            
         }
-
         private void DrawSnake()
         {
             foreach (var SnakePart in SnakeParts)
@@ -190,6 +191,7 @@ namespace Snake_Game
                 Position = new Point(nextX, nextY),
                 IsHead = true
             });
+
             DrawSnake();
             CheckCollisions();
         }
@@ -227,9 +229,9 @@ namespace Snake_Game
             for (int i = 0; i < NumberOfEnemies; i++)
             {
                 int randX = rnd.Next(0, (int)GameArea.ActualWidth);
-                randX = (randX / 20) * 20;
+                randX = (randX / CELL_WIDTH) * CELL_WIDTH;
                 int randY = rnd.Next(0, (int)GameArea.ActualHeight);
-                randY = (randY / 20) * 20;
+                randY = (randY / CELL_HEIGHT) * CELL_HEIGHT;
 
                 Enemy enemy = new Enemy() {
                     Position = new Point(randX, randY),
@@ -247,7 +249,6 @@ namespace Snake_Game
                 Canvas.SetLeft(enemy.UiElement, randX);
             }
         }
-
         private EnemyDirection GetRandomEnemyDirection()
         {
             Type type = typeof(EnemyDirection);
@@ -255,9 +256,6 @@ namespace Snake_Game
             int index = rnd.Next(values.Length);
             return (EnemyDirection)values.GetValue(index);
         }
-
-        
-
         private (double, double) GetMoveStep(Enemy enemy)
         {
             double xMove = 0, yMove = 0;
@@ -293,6 +291,7 @@ namespace Snake_Game
             if (nextX == 0 && currentDir == EnemyDirection.SouthWest)
             {
                 currentDir = EnemyDirection.SouthEast;
+            
             }
             else if(nextX == 0 && currentDir == EnemyDirection.NorthWest)
             {
@@ -358,9 +357,6 @@ namespace Snake_Game
                 }
             }
         }
-
-        
-
         private void HandleMovingSnakeOutsideMape(SnakePart SnakeHead)
         {
             if (SnakeHead.Position.X < 0)
@@ -400,6 +396,36 @@ namespace Snake_Game
                 bdrEndOfGame.Visibility = Visibility.Visible;
             }
             GameTickTimer.IsEnabled = false;
+            SpeakEndOfGameInfo(isNewHighscore);
+        }
+
+        private void SpeakEndOfGameInfo(bool isNewHighscore)
+        {
+            PromptBuilder promptBuilder = new PromptBuilder();
+            promptBuilder.StartStyle(new PromptStyle()
+            {
+                Emphasis = PromptEmphasis.Reduced,
+                Rate = PromptRate.Slow,
+                Volume = PromptVolume.ExtraLoud
+            });
+            promptBuilder.AppendText("Game Over");
+            promptBuilder.EndStyle();
+
+            if (isNewHighscore)
+            {
+                promptBuilder.AppendBreak(TimeSpan.FromMilliseconds(500));
+                promptBuilder.StartStyle(new PromptStyle()
+                {
+                    Emphasis = PromptEmphasis.Moderate,
+                    Rate = PromptRate.Medium,
+                    Volume = PromptVolume.Medium
+                });
+                promptBuilder.AppendText("new high score:");
+                promptBuilder.AppendBreak(TimeSpan.FromMilliseconds(200));
+                promptBuilder.AppendTextWithHint(CurrentScore.ToString(), SayAs.NumberCardinal);
+                promptBuilder.EndStyle();
+            }
+            SpeechSynthesizer.SpeakAsync(promptBuilder);
         }
 
         private Point GetFoodPosition()
@@ -412,9 +438,10 @@ namespace Snake_Game
             foreach (var snakePart in SnakeParts)
             {
                 if ((snakePart.Position.X == foodX) && (snakePart.Position.Y == foodY))
+                {
                     return GetFoodPosition();
+                }
             }
-
             return new Point(foodX, foodY);
         }
 
@@ -428,6 +455,7 @@ namespace Snake_Game
 
         private void EatSnakeFood()
         {
+            SpeechSynthesizer.SpeakAsync("yummy");
             SnakeLength++;
             CurrentScore++;
             int howMuchSpeedIncreases = 30;
@@ -451,60 +479,62 @@ namespace Snake_Game
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            SnakeDirection currentDirection = snakeDirection;
-            switch (e.Key)
+            if(e.Key == Key.Escape)
             {
-                case Key.Up:
-                    if (snakeDirection != SnakeDirection.Down)
-                    {
-                        snakeDirection = SnakeDirection.Up;
-                    }
-                    break;
-                case Key.Down:
-                    if (snakeDirection != SnakeDirection.Up)
-                    {
-                        snakeDirection = SnakeDirection.Down;
-                    }
-                    break;
-                case Key.Left:
-                    if (snakeDirection != SnakeDirection.Right)
-                    {
-                        snakeDirection = SnakeDirection.Left;
-                    }
-                    break;
-                case Key.Right:
-                    if (snakeDirection != SnakeDirection.Left)
-                    {
-                        snakeDirection = SnakeDirection.Right;
-                    }
-                    break;
-                case Key.Space:
-                    bdrWelcomeMessage.Visibility = Visibility.Collapsed;
-                    StartGame();
-                    break;
-                case Key.Escape:
-                    this.Close();
-                    break;
-                case Key.N:
-                    RestartGame();
-                    break;
+                this.Close();
             }
-            if (snakeDirection != currentDirection)
-            {
-                MoveSnake();
-            }
-        }
 
-        
+            if(bdrNewHighscore.Visibility == Visibility.Collapsed && bdrHighscoreList.Visibility == Visibility.Collapsed)
+            {
+                SnakeDirection currentDirection = snakeDirection;
+                switch (e.Key)
+                {
+                    case Key.Up:
+                        if (snakeDirection != SnakeDirection.Down)
+                        {
+                            snakeDirection = SnakeDirection.Up;
+                        }
+                        break;
+                    case Key.Down:
+                        if (snakeDirection != SnakeDirection.Up)
+                        {
+                            snakeDirection = SnakeDirection.Down;
+                        }
+                        break;
+                    case Key.Left:
+                        if (snakeDirection != SnakeDirection.Right)
+                        {
+                            snakeDirection = SnakeDirection.Left;
+                        }
+                        break;
+                    case Key.Right:
+                        if (snakeDirection != SnakeDirection.Left)
+                        {
+                            snakeDirection = SnakeDirection.Right;
+                        }
+                        break;
+                    case Key.Space:
+                        bdrWelcomeMessage.Visibility = Visibility.Collapsed;
+                        StartGame();
+                        break;
+                    case Key.N:
+                        RestartGame();
+                        break;
+                }
+                if (snakeDirection != currentDirection)
+                {
+                    MoveSnake();
+                }
+            }
+
+            
+        }
 
         private void GameLoop_Step(object sender, EventArgs e)
         {
             MoveSnake();
             MoveEnemies();
         }
-
-        
-
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -545,7 +575,6 @@ namespace Snake_Game
             bdrWelcomeMessage.Visibility = Visibility.Collapsed;
             bdrHighscoreList.Visibility = Visibility.Visible;
         }
-
         private void LoadHighscoreList()
         {
             if (File.Exists(FILE_WITH_HIGHSCORE_LIST))
@@ -569,6 +598,12 @@ namespace Snake_Game
             {
                 serializer.Serialize(writer, this.HighscoreList);
             }
+        }
+
+        private void Go_To_Welcome_Page_Button_Click(object sender, RoutedEventArgs e)
+        {
+            bdrHighscoreList.Visibility = Visibility.Collapsed;
+            bdrWelcomeMessage.Visibility = Visibility.Visible;
         }
     }
 }

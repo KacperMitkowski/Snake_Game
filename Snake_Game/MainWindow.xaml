@@ -36,10 +36,10 @@
 
             <WrapPanel Margin="10,0,0,0">
                 <TextBlock>Score:</TextBlock>
-                <TextBlock Name="ScoreTextBlock">0</TextBlock>
+                <TextBlock Name="ScoreTextBlock">0 </TextBlock>
             </WrapPanel>
             <WrapPanel Grid.Column="1">
-                <TextBlock>Speed:</TextBlock>
+                <TextBlock>To change: </TextBlock>
                 <TextBlock Name="SpeedTextBlock">0</TextBlock>
             </WrapPanel>
             <Button Grid.Column="2" DockPanel.Dock="Right" Background="Transparent" Foreground="White" FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" Click="btnClose_Click" Padding="10,0">X</Button>
@@ -49,15 +49,17 @@
                 <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="50" Canvas.Top="50" Name="bdrWelcomeMessage" Panel.ZIndex="1">
                     <StackPanel Orientation="Vertical" Background="AliceBlue">
                         <TextBlock FontWeight="Bold" FontSize="50" HorizontalAlignment="Center" Margin="0,20,0,0">SnakeWPF</TextBlock>
-                        <TextBlock TextWrapping="Wrap" Margin="20" FontSize="16">Use the Arrow keys to control the green snake. Make it eat the red apples, but be sure not to crash into the walls or the tail of the snake!</TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="20" FontSize="16">Use the Arrow keys to control the green snake. Make it eat the red apples, but be sure not to crash into the tail of the snake!</TextBlock>
                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center" FontSize="24" Foreground="Maroon">Press SPACE to start!</TextBlock>
+                        <TextBlock FontWeight="Bold" HorizontalAlignment="Center" FontSize="24" Foreground="Maroon">Press ESC to exit!</TextBlock>
                         <Button Margin="20" Name="btnShowHighscoreList" Click="BtnShowHighscoreList_Click" HorizontalAlignment="Center" Padding="10,3">Show High Score List...</Button>
                     </StackPanel>
                 </Border>
-                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="50" Canvas.Top="50" Name="bdrHighscoreList" Panel.ZIndex="1" Visibility="Collapsed">
+                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="320" Canvas.Left="50" Canvas.Top="50" Name="bdrHighscoreList" Panel.ZIndex="1" Visibility="Collapsed">
                     <StackPanel Orientation="Vertical" Background="AliceBlue">
                         <Border BorderThickness="0,0,0,2" BorderBrush="Silver" Margin="0,10">
                             <TextBlock HorizontalAlignment="Center" FontSize="34" FontWeight="Bold">High Score List</TextBlock>
+                            
                         </Border>
                         <ItemsControl ItemsSource="{Binding Source={StaticResource HighScoreListViewSource}}">
                             <ItemsControl.ItemTemplate>
@@ -69,6 +71,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <Button Height="30" Click="Go_To_Welcome_Page_Button_Click">Go to welcome page</Button>
                     </StackPanel>
                 </Border>
                 <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="50" Canvas.Top="50" Name="bdrNewHighscore" Panel.ZIndex="1" Visibility="Collapsed">
