@@ -33,7 +33,7 @@ namespace Snake_Game
         private int SnakeSpeed = 400;
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
-        private int NumberOfEnemies = 3;
+        private int NumberOfEnemies = 1;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
         private SolidColorBrush EnemyColor = Brushes.BlueViolet;
@@ -341,6 +341,14 @@ namespace Snake_Game
                 return;
             }
             HandleMovingSnakeOutsideMape(SnakeHead);
+
+            foreach (SnakePart snakePart in SnakeParts)
+            {
+                if((Enemies.Any(Enemy => Enemy.Position.X == snakePart.Position.X)) && (Enemies.Any(Enemy => Enemy.Position.Y == snakePart.Position.Y)))
+                {
+                    EndGame();
+                }
+            }
 
             foreach (SnakePart SnakeBodyPart in SnakeParts.Take(SnakeParts.Count - 1))
             {
