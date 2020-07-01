@@ -23,3 +23,6 @@ This is a game made in my free time. The project is easy to extend by adding new
 3. Snake cannot touch the enemy or its own tail. If player touches it - the game stops and it must be started from the scratch
 4. When snake eats the apple it becomes longer and it moves faster
 5. Player can see high score list (read from XML file) and can exit game by pressing ESC
+
+## Screenshots:
+![alt text](https://github.com/KacperMitkowski/Snake_Game/blob/master/Snake_Game/screenshots/screenshots_1.gif)
