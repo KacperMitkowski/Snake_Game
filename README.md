@@ -25,4 +25,4 @@ This is a game made in my free time. The project is easy to extend by adding new
 5. Player can see high score list (read from XML file) and can exit game by pressing ESC
 
 ## Screenshots:
-![alt text](https://github.com/KacperMitkowski/Snake_Game/blob/master/Snake_Game/screenshots/screenshots_1.gif)
+![alt text](https://github.com/KacperMitkowski/Snake_Game/blob/master/Snake_Game/screenshots/screenshot_1.gif)
