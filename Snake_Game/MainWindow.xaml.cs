@@ -36,6 +36,7 @@ namespace Snake_Game
         private int NumberOfEnemies = 3;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
+        private SolidColorBrush EnemyColor = Brushes.BlueViolet;
         private Random rnd = new Random();
         private int CurrentScore = 0;
         private SnakeDirection snakeDirection = SnakeDirection.Right;
@@ -208,7 +209,7 @@ namespace Snake_Game
                         {
                             Width = CELL_WIDTH,
                             Height = CELL_HEIGHT,
-                            Fill = Brushes.Orange
+                            Fill = EnemyColor
                         },
                         MoveDirection = Enemies[i].MoveDirection,
                         Position = new Point(Enemies[i].Position.X + move.x, Enemies[i].Position.Y + move.y)
@@ -216,6 +217,7 @@ namespace Snake_Game
                     GameArea.Children.Add(Enemies[i].UiElement);
                     Canvas.SetTop(Enemies[i].UiElement, Enemies[i].Position.Y);
                     Canvas.SetLeft(Enemies[i].UiElement, Enemies[i].Position.X);
+                    HandleBouncingEnemyFromWall(Enemies[i]);
                 }
             }
         }
@@ -235,10 +237,10 @@ namespace Snake_Game
                         {
                             Width = CELL_WIDTH,
                             Height = CELL_HEIGHT,
-                            Fill = Brushes.Orange,
+                            Fill = EnemyColor,
                         },
-                        MoveDirection = GetRandomEnemyDirection()
-                    };
+                    MoveDirection = GetRandomEnemyDirection()
+                };
                 Enemies.Add(enemy);
                 GameArea.Children.Add(enemy.UiElement);
                 Canvas.SetTop(enemy.UiElement, randY);
@@ -254,6 +256,8 @@ namespace Snake_Game
             return (EnemyDirection)values.GetValue(index);
         }
 
+        
+
         private (double, double) GetMoveStep(Enemy enemy)
         {
             double xMove = 0, yMove = 0;
@@ -261,25 +265,72 @@ namespace Snake_Game
             switch (enemy.MoveDirection)
             {
                 case EnemyDirection.NorthEast:
-                    xMove = 20;
-                    yMove = -20;
+                    xMove = CELL_WIDTH;
+                    yMove = -CELL_HEIGHT;
                     break;
                 case EnemyDirection.NorthWest:
-                    xMove = 20;
-                    yMove = 20;
+                    xMove = -CELL_WIDTH;
+                    yMove = -CELL_HEIGHT;
                     break;
                 case EnemyDirection.SouthEast:
-                    xMove = -20;
-                    yMove = 20;
+                    xMove = CELL_WIDTH;
+                    yMove = CELL_HEIGHT;
                     break;
                 case EnemyDirection.SouthWest:
-                    xMove = -20;
-                    yMove = -20;
+                    xMove = -CELL_WIDTH;
+                    yMove = CELL_HEIGHT;
                     break;
             }
             return (xMove, yMove);
         }
+        private void HandleBouncingEnemyFromWall(Enemy enemy)
+        {
+            double nextX = enemy.Position.X;
+            double nextY = enemy.Position.Y;
+            EnemyDirection currentDir = enemy.MoveDirection;
 
+            // left wall
+            if (nextX == 0 && currentDir == EnemyDirection.SouthWest)
+            {
+                currentDir = EnemyDirection.SouthEast;
+            }
+            else if(nextX == 0 && currentDir == EnemyDirection.NorthWest)
+            {
+                currentDir = EnemyDirection.NorthEast;
+            }
+
+            // up wall
+            else if(nextY == 0 && currentDir == EnemyDirection.NorthEast)
+            {
+                currentDir = EnemyDirection.SouthEast;
+            }
+            else if(nextY == 0 && currentDir == EnemyDirection.NorthWest)
+            {
+                currentDir = EnemyDirection.SouthWest;
+            }
+
+            // right wall
+            else if(nextX == GameArea.ActualWidth - CELL_WIDTH && currentDir == EnemyDirection.SouthEast)
+            {
+                currentDir = EnemyDirection.SouthWest;
+            }
+            else if (nextX == GameArea.ActualWidth - CELL_WIDTH && currentDir == EnemyDirection.NorthEast)
+            {
+                currentDir = EnemyDirection.NorthWest;
+            }
+
+            // down wall
+            else if(nextY == GameArea.ActualHeight - CELL_HEIGHT && currentDir == EnemyDirection.SouthWest)
+            {
+                currentDir = EnemyDirection.NorthWest;
+            }
+            else if(nextY == GameArea.ActualHeight - CELL_HEIGHT && currentDir == EnemyDirection.SouthEast)
+            {
+                currentDir = EnemyDirection.NorthEast;
+            }
+
+            enemy.MoveDirection = currentDir;
+        }
         private void CheckCollisions()
         {
             SnakePart SnakeHead = SnakeParts[SnakeParts.Count - 1];
@@ -299,6 +350,8 @@ namespace Snake_Game
                 }
             }
         }
+
+        
 
         private void HandleMovingSnakeOutsideMape(SnakePart SnakeHead)
         {
