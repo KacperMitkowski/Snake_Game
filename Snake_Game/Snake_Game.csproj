@@ -56,6 +56,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Enemy.cs" />
+    <Compile Include="EnemyDirection.cs" />
     <Compile Include="SnakeDirection.cs" />
     <Compile Include="SnakeHighscore.cs" />
     <Compile Include="SnakePart.cs" />

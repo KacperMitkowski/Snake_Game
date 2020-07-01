@@ -33,6 +33,7 @@ namespace Snake_Game
         private int SnakeSpeed = 400;
         private int SnakeSpeedThreshold = 100;
         private int SnakeLength = 3;
+        private int NumberOfEnemies = 3;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
         private Random rnd = new Random();
@@ -194,94 +195,89 @@ namespace Snake_Game
 
         private void MoveEnemies()
         {
-            DrawEnemies();
-            //foreach (Enemy enemy in Enemies)
-            //{
-            //    if (enemy.UiElement != null)
-            //    {
-            //        GameArea.Children.Remove(enemy.UiElement);
-                         
-            //    }
-            //}
-
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    Enemy enemy = new Enemy();
-            //    Enemies.Add(enemy);
-            //    enemy.UiElement = new Rectangle()
-            //    {
-            //        Width = CELL_WIDTH,
-            //        Height = CELL_HEIGHT,
-            //        Fill = Brushes.Orange
-            //    };
-            //    GameArea.Children.Add(enemy.UiElement);
-            //    Canvas.SetTop(enemy.UiElement, 40);
-            //    Canvas.SetLeft(enemy.UiElement, 120);
-            //}
-
-            //Enemy en = new Enemy();
-            //Enemies.Add(en);
-            //en.UiElement = new Rectangle()
-            //{
-            //    Width = CELL_WIDTH,
-            //    Height = CELL_HEIGHT,
-            //    Fill = Brushes.Orange
-            //};
-            //GameArea.Children.Add(en.UiElement);
-            //Canvas.SetTop(en.UiElement, 40);
-            //Canvas.SetLeft(en.UiElement, 120);
-        }
-
-        private void DrawEnemies()
-        {
-            if (Enemies.Count == 0)
+            for (int i = 0; i < Enemies.Count; i++)
             {
-                for (int i = 0; i < 3; i++)
-                {
-                    int randX = rnd.Next(0, (int)GameArea.ActualWidth);
-                    randX = (randX / 20) * 20;
-                    int randY = rnd.Next(0, (int)GameArea.ActualHeight);
-                    randY = (randY / 20) * 20;
+                (double x, double y) move = GetMoveStep(Enemies[i]);
 
-                    Enemy enemy = new Enemy() {
-                        Position = new Point(randX, randY),
+                if (Enemies[i].UiElement != null)
+                {
+                    GameArea.Children.Remove(Enemies[i].UiElement);
+                    Enemies[i] = new Enemy()
+                    {
                         UiElement = new Rectangle()
                         {
                             Width = CELL_WIDTH,
                             Height = CELL_HEIGHT,
                             Fill = Brushes.Orange
-                        }
+                        },
+                        MoveDirection = Enemies[i].MoveDirection,
+                        Position = new Point(Enemies[i].Position.X + move.x, Enemies[i].Position.Y + move.y)
                     };
-                    Enemies.Add(enemy);
-                    GameArea.Children.Add(enemy.UiElement);
-                    Canvas.SetTop(enemy.UiElement, randY);
-                    Canvas.SetLeft(enemy.UiElement, randX);
+                    GameArea.Children.Add(Enemies[i].UiElement);
+                    Canvas.SetTop(Enemies[i].UiElement, Enemies[i].Position.Y);
+                    Canvas.SetLeft(Enemies[i].UiElement, Enemies[i].Position.X);
                 }
             }
-            else
+        }
+
+        private void DrawEnemies()
+        {
+            for (int i = 0; i < NumberOfEnemies; i++)
             {
-                for (int i = 0; i < Enemies.Count; i++)
-                {
-                    if (Enemies[i].UiElement != null)
-                    {
-                        GameArea.Children.Remove(Enemies[i].UiElement);
-                        Enemies[i] = new Enemy()
+                int randX = rnd.Next(0, (int)GameArea.ActualWidth);
+                randX = (randX / 20) * 20;
+                int randY = rnd.Next(0, (int)GameArea.ActualHeight);
+                randY = (randY / 20) * 20;
+
+                Enemy enemy = new Enemy() {
+                    Position = new Point(randX, randY),
+                    UiElement = new Rectangle()
                         {
-                            UiElement = new Rectangle()
-                            {
-                                Width = CELL_WIDTH,
-                                Height = CELL_HEIGHT,
-                                Fill = Brushes.Orange
-                            },
-                            Position = new Point(Enemies[i].Position.X + 20, Enemies[i].Position.Y + 20)
-                        };
-                        GameArea.Children.Add(Enemies[i].UiElement);
-                        Canvas.SetTop(Enemies[i].UiElement, Enemies[i].Position.Y);
-                        Canvas.SetLeft(Enemies[i].UiElement, Enemies[i].Position.X);
-                    }
-                }
-                
+                            Width = CELL_WIDTH,
+                            Height = CELL_HEIGHT,
+                            Fill = Brushes.Orange,
+                        },
+                        MoveDirection = GetRandomEnemyDirection()
+                    };
+                Enemies.Add(enemy);
+                GameArea.Children.Add(enemy.UiElement);
+                Canvas.SetTop(enemy.UiElement, randY);
+                Canvas.SetLeft(enemy.UiElement, randX);
             }
+        }
+
+        private EnemyDirection GetRandomEnemyDirection()
+        {
+            Type type = typeof(EnemyDirection);
+            Array values = type.GetEnumValues();
+            int index = rnd.Next(values.Length);
+            return (EnemyDirection)values.GetValue(index);
+        }
+
+        private (double, double) GetMoveStep(Enemy enemy)
+        {
+            double xMove = 0, yMove = 0;
+
+            switch (enemy.MoveDirection)
+            {
+                case EnemyDirection.NorthEast:
+                    xMove = 20;
+                    yMove = -20;
+                    break;
+                case EnemyDirection.NorthWest:
+                    xMove = 20;
+                    yMove = 20;
+                    break;
+                case EnemyDirection.SouthEast:
+                    xMove = -20;
+                    yMove = 20;
+                    break;
+                case EnemyDirection.SouthWest:
+                    xMove = -20;
+                    yMove = -20;
+                    break;
+            }
+            return (xMove, yMove);
         }
 
         private void CheckCollisions()

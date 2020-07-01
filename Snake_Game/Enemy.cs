@@ -12,5 +12,6 @@ namespace Snake_Game
     {
         public UIElement UiElement { get; set; }
         public Point Position { get; set; }
+        public EnemyDirection MoveDirection { get; set; }
     }
 }
