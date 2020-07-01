@@ -39,9 +39,9 @@ namespace Snake_Game
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private SolidColorBrush SnakeHeadColor = Brushes.Green;
         private SolidColorBrush SnakeBodyColor = Brushes.GreenYellow;
-        private SolidColorBrush EnemyColor = Brushes.BlueViolet;
-        private SolidColorBrush BoardColorOne = Brushes.LightBlue;
-        private SolidColorBrush BoardColorTwo = Brushes.LightSalmon;
+        private SolidColorBrush EnemyColor = Brushes.DarkBlue;
+        private SolidColorBrush BoardColorOne = Brushes.LightCyan;
+        private SolidColorBrush BoardColorTwo = Brushes.LightCoral;
         private Random rnd = new Random();
         private UIElement SnakeFood = new Ellipse() { Width = CELL_WIDTH, Height = CELL_HEIGHT, Fill = Brushes.Red };
         private List<SnakePart> SnakeParts = new List<SnakePart>();
